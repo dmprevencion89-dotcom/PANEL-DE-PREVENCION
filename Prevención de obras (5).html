@@ -1,0 +1,491 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Prevención de obras</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: encabezado + pestañas por obra, fichas de resumen, tabla de indicadores con variación vs mes anterior, gráfico de evolución con selector de indicador. */
+:root{
+  --bg:#f3f4f2; --surface:#ffffff; --surface-2:#eceeeb; --line:#dcdfdb; --fg:#1f2a2e; --muted:#667276;
+  --brand:#d4202c; --brand-ink:#ffffff;
+  --pch:#4a78c4; --eyz:#8f9f20; --can:#2f9a68; --area:#26343a;
+  --good-bg:#dcefe4; --good-fg:#1c6a43; --bad-bg:#fbdde1; --bad-fg:#a8132a; --flat-bg:#eef0ed; --flat-fg:#56625f; --warn-bg:#fde6cf; --warn-fg:#a14a05;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shade:#e6e9e7;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181a; --surface:#1a2225; --surface-2:#222c30; --line:#2d393d; --fg:#e6ecec; --muted:#8fa0a4;
+  --brand:#ef4b56; --brand-ink:#12181a;
+  --pch:#7aa2e8; --eyz:#b9cb45; --can:#4ec08c; --area:#d9e3e5;
+  --good-bg:#17382a; --good-fg:#7fd6a6; --bad-bg:#44181f; --bad-fg:#ff9aa6; --flat-bg:#232d30; --flat-fg:#9fb0b3; --warn-bg:#40290f; --warn-fg:#f2b36b;
+  --shade:#222c30; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181a; --surface:#1a2225; --surface-2:#222c30; --line:#2d393d; --fg:#e6ecec; --muted:#8fa0a4;
+  --brand:#ef4b56; --brand-ink:#12181a;
+  --pch:#7aa2e8; --eyz:#b9cb45; --can:#4ec08c; --area:#d9e3e5;
+  --good-bg:#17382a; --good-fg:#7fd6a6; --bad-bg:#44181f; --bad-fg:#ff9aa6; --flat-bg:#232d30; --flat-fg:#9fb0b3; --warn-bg:#40290f; --warn-fg:#f2b36b;
+  --shade:#222c30; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;padding-block:0 48px}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.top{display:flex;align-items:center;gap:20px;padding-block:18px 14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:26px;height:26px;background:var(--brand);border-radius:3px 3px 3px 12px}
+.brand b{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.top h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.top .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.top .sp{flex:1}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:7px;font-size:13.5px;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--brand);font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;padding-block:16px 6px}
+.ctrl label,.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
+.seg button{appearance:none;border:0;background:none;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:500}
+.field{display:flex;align-items:center;gap:8px}
+select{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer}
+.prov{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:6px;padding:4px 9px}
+h2{font-size:15px;font-weight:600;margin:0}
+.head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:20px 0 12px}
+.head .lbl{margin-left:auto}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.tile .v{font-family:var(--mono);font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.02em}
+.tile .s{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;margin-top:14px;min-width:0}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:960px}
+th{font-weight:500;font-size:12px;color:var(--muted);text-align:center;padding:8px 6px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+th:first-child{text-align:left;border-radius:6px 0 0 0;padding-left:10px}
+th:last-child{border-radius:0 6px 0 0}
+td{padding:6px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.o{text-align:left;padding-left:10px;white-space:nowrap}
+td.o .m{font-family:var(--mono);font-size:11px;color:var(--muted)}
+tr.go{cursor:pointer}
+tr.go:hover td.o{background:var(--surface-2)}
+.cell{border-radius:6px;padding:7px 4px;font-family:var(--mono);min-width:84px}
+.cell b{display:block;font-size:14px;font-weight:600}
+.cell i{display:block;font-style:normal;font-size:11px;opacity:.9}
+.good{background:var(--good-bg);color:var(--good-fg)} .bad{background:var(--bad-bg);color:var(--bad-fg)} .flat{background:var(--flat-bg);color:var(--flat-fg)}
+.up-good,.dn-good{color:var(--good-fg)} .up-bad,.dn-bad{color:var(--bad-fg)}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px;min-width:60px}.bar i{display:block;height:100%;background:var(--accent,#2f6f5e)}
+td.na{color:var(--muted)}
+.note{color:var(--muted);font-size:12.5px;max-width:78ch;margin:12px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 8px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:7px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chartbox{position:relative;width:100%}
+.chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.5;white-space:nowrap;z-index:2}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:16px;height:0;border-top:2px solid;display:inline-block}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.two .card{margin-top:14px}
+.ev{width:100%;min-width:560px}
+.pill{font-family:var(--mono);font-size:10.5px;border-radius:99px;padding:2px 8px;background:var(--flat-bg);color:var(--flat-fg);white-space:nowrap}
+.pill.ok{background:var(--good-bg);color:var(--good-fg)} .pill.no{background:var(--bad-bg);color:var(--bad-fg)}
+td.l{text-align:left}
+.empty{color:var(--muted);padding:18px 4px}
+.prose h3{font-size:13.5px;margin:22px 0 6px}
+.prose p,.prose li{max-width:78ch;color:var(--fg)}
+.prose code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 6px;border-radius:4px}
+.prose ul{padding-left:20px;margin:6px 0}
+.foot{color:var(--muted);font-size:12px;margin-top:26px}
+@media (max-width:860px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){.tile .v{font-size:22px}.top h1{font-size:19px}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><b>leben</b></div>
+    <div>
+      <h1>Prevención de obras</h1>
+      <div class="sub">Gerencia de Construcción · indicadores de seguridad por obra</div>
+    </div>
+    <span class="sp"></span>
+    <span class="tag">Lectura</span>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs" aria-label="Vistas"></nav>
+
+  <div class="ctrl">
+    <div class="field"><label for="mes">Mes</label><select id="mes"></select></div>
+    <div class="field"><span class="lbl">Acumulado</span>
+      <div class="seg" id="segCrit"><button data-v="DS67" aria-pressed="true">DS 67 (jul–jun)</button><button data-v="ANUAL" aria-pressed="false">Año calendario</button><button data-v="INICIO" aria-pressed="false">Desde inicio</button></div>
+    </div>
+    <div class="field"><span class="lbl">Personal</span>
+      <div class="seg" id="segPers"><button data-v="LEBEN" aria-pressed="true">Leben</button><button data-v="SC" aria-pressed="false">Subcontratos</button><button data-v="TOTAL" aria-pressed="false">Total</button></div>
+    </div>
+    <span class="prov" id="prov">Acumulado oficial: ciclo del DS 67, de julio a junio</span>
+  </div>
+
+  <main id="view"></main>
+  <p class="foot">Fuentes: ESTADISTICA_LIMPIA y Accidentes_2026 (versiones del 06-11-2026) y ENVIAR_INFORME (auditorías, visitas de riesgos críticos de Mutual de Seguridad, condiciones altamente críticas, exámenes de altura, PGO y protocolos MINSAL). Las flechas comparan con el mes anterior.</p>
+</div>
+
+<script>
+const RAW={"PCH": {"LEBEN": [[202401, 12, 0, 0, 2268], [202402, 21, 0, 0, 3969], [202403, 15, 0, 0, 2835], [202404, 16, 0, 0, 3024], [202405, 15, 0, 0, 2835], [202406, 17, 0, 0, 3213], [202407, 32, 0, 0, 6048], [202408, 25, 0, 0, 4725], [202409, 27, 0, 0, 5103], [202410, 45, 0, 0, 8505], [202411, 47, 0, 0, 8883], [202412, 52, 0, 0, 9828], [202501, 57, 0, 0, 10773], [202502, 56, 0, 0, 10584], [202503, 72, 0, 0, 13608], [202504, 75, 0, 0, 14175], [202505, 81, 1, 5, 15309], [202506, 77, 2, 32, 14553], [202507, 93, 0, 31, 17577], [202508, 82, 0, 13, 15498], [202509, 101, 0, 0, 19089], [202510, 102, 0, 0, 19278], [202511, 107, 1, 6, 20223], [202512, 127, 1, 13, 24003], [202601, 127, 1, 2, 24003], [202602, 176, 1, 2, 33264], [202603, 139, 1, 0, 26271], [202604, 133, 4, 13, 25137], [202605, 124, 0, 0, 23436], [202606, 138, 0, 0, 26082], [202607, 127, 1, 22, 24003], [202608, 165, 1, 6, 31185], [202609, 161, 4, 17, 30429], [202610, 136, 1, 0, 22848]], "SC": [[202401, 4, 0, 0, 756], [202402, 7, 0, 0, 1323], [202403, 7, 0, 0, 1323], [202404, 8, 0, 0, 1512], [202405, 8, 0, 0, 1512], [202406, 11, 0, 0, 2079], [202407, 19, 0, 0, 3591], [202408, 23, 0, 0, 4347], [202409, 27, 0, 0, 5103], [202410, 24, 0, 0, 4536], [202411, 30, 0, 0, 5670], [202412, 49, 0, 0, 9261], [202501, 59, 0, 0, 11151], [202502, 77, 0, 0, 14553], [202503, 75, 0, 0, 14175], [202504, 73, 0, 0, 13797], [202505, 86, 0, 0, 16254], [202506, 95, 0, 0, 17955], [202507, 103, 0, 0, 19467], [202508, 97, 0, 0, 18333], [202509, 67, 0, 0, 12663], [202510, 78, 0, 0, 14742], [202511, 99, 0, 0, 18711], [202512, 108, 0, 0, 20412], [202601, 85, 0, 0, 16065], [202602, 77, 0, 0, 14553], [202603, 52, 0, 0, 9828], [202604, 118, 0, 0, 22302], [202605, 72, 0, 0, 13608], [202606, 80, 0, 0, 15120], [202607, 55, 0, 0, 10395], [202608, 60, 0, 0, 11340], [202609, 120, 0, 0, 24570], [202610, 109, 0, 0, 18312]]}, "EYZ": {"LEBEN": [[202511, 11, 0, 0, 2079], [202512, 18, 0, 0, 3402], [202601, 21, 0, 0, 3969], [202602, 27, 0, 0, 5103], [202603, 31, 0, 0, 5859], [202604, 31, 0, 0, 5859], [202605, 38, 0, 0, 7182], [202606, 45, 0, 0, 8127], [202607, 46, 1, 5, 8316], [202608, 53, 0, 7, 9639], [202609, 61, 1, 30, 11151], [202610, 66, 0, 31, 11088]], "SC": [[202511, 6, 0, 0, 1134], [202512, 15, 0, 0, 2835], [202601, 22, 0, 0, 4158], [202602, 29, 0, 0, 5481], [202603, 31, 1, 1, 5859], [202604, 32, 0, 0, 6048], [202605, 45, 0, 0, 8505], [202606, 44, 0, 0, 8316], [202607, 40, 0, 0, 7560], [202608, 50, 0, 0, 9450], [202609, 66, 0, 0, 12474], [202610, 80, 0, 0, 13440]]}, "CAN": {"LEBEN": [[202603, 11, 0, 0, 2079], [202604, 17, 0, 0, 3213], [202605, 18, 0, 0, 3402], [202606, 23, 0, 0, 3969], [202607, 24, 0, 0, 4158], [202608, 34, 0, 0, 6048], [202609, 42, 1, 28, 7560], [202610, 44, 0, 24, 7392]], "SC": [[202603, 4, 0, 0, 756], [202604, 19, 0, 0, 3591], [202605, 17, 0, 0, 3213], [202606, 6, 0, 0, 1134], [202607, 13, 0, 0, 2079], [202608, 25, 0, 0, 4347], [202609, 24, 0, 0, 4158], [202610, 28, 0, 0, 4704]]}};
+const EVENTS=[["PCH", 202601, "2026-01-21", "AT", "Caída de material", "Mano", "ACEPTADO", 0, 0], ["PCH", 202601, "2026-01-23", "AT", "Caída de material", "Mano", "ACEPTADO", 2, 0], ["PCH", 202601, "2026-01-27", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 0, 0], ["PCH", 202601, "2026-01-28", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 0, 0], ["PCH", 202602, "2026-02-16", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 2, 2], ["PCH", 202602, "2026-02-17", "AT", "Golpeado por", "Lado costal derecho", "ACEPTADO", 0, 0], ["PCH", 202603, "2026-03-31", "AT", null, null, "RECHAZADO", 0, 0], ["PCH", 202604, "2026-04-01", "AT", "Sobreesfuerzo", "Espalda baja", "ACEPTADO", 2, 2], ["PCH", 202604, "2026-04-07", "EP", null, null, "RECHAZADO", 11, 0], ["PCH", 202604, "2026-04-08", "EP", null, null, "ACEPTADO", 2, 2], ["PCH", 202604, "2026-04-13", "AT", "Caída al mismo nivel", "Tobillo", "ACEPTADO", 0, 0], ["PCH", 202604, "2026-04-14", "TR", null, null, "ACEPTADO", 2, 2], ["PCH", 202604, "2026-04-16", "AT", "Atrapamiento", "Mano", "ACEPTADO", 0, 0], ["PCH", 202604, "2026-04-20", "TR", null, null, "ACEPTADO", 9, 9], ["PCH", 202604, "2026-04-29", "AT", "Caída de material", "Pie", "ACEPTADO", 0, 0], ["PCH", 202605, "2026-05-18", "AT", "Contacto con objeto", null, "ACEPTADO", 2, 0], ["PCH", 202606, "2026-06-08", "AT", null, null, "RECHAZADO", 2, 0], ["PCH", 202606, "2026-06-10", "AT", null, null, "RECHAZADO", 0, 0], ["EYZ", 202606, "2026-06-11", "TR", null, null, "ACEPTADO", 0, 0], ["PCH", 202606, "2026-06-18", "AT", "Proyección de partícula", null, "ACEPTADO", 0, 0], ["EYZ", 202606, "2026-06-22", "AT", "Ley Karin", null, "ACEPTADO", 0, 0], ["PCH", 202607, "2026-07-01", "TR", null, null, "RECHAZADO", 0, 0], ["EYZ", 202607, "2026-07-09", "EP", null, null, "RECHAZADO", 0, 0], ["PCH", 202607, "2026-07-10", "AT", "Caída a distinto nivel", null, "ACEPTADO", 33, 27], ["EYZ", 202607, "2026-07-27", "AT", "Contacto con objeto punzante", null, "ACEPTADO", 12, 12], ["EYZ", 202607, "2026-07-29", "AT", "Ley Karin", null, "ACEPTADO", 0, 0], ["PCH", 202608, "2026-08-02", "AT", null, null, "RECHAZADO", 0, 0], ["PCH", 202608, "2026-08-03", "AT", "Caída a distinto nivel", "Pierna", "ACEPTADO", 6, 4], ["PCH", 202608, "2026-09-01", "EP", null, null, "RECHAZADO", 0, 0], ["EYZ", 202609, "2026-09-01", "AT", "Caída a distinto nivel", "Mano", "ACEPTADO", 61, 48], ["PCH", 202609, "2026-09-02", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 0, 0], ["CAN", 202609, "2026-09-03", "AT", "Caída al mismo nivel", null, "ACEPTADO", 52, 48], ["PCH", 202609, "2026-09-08", "AT", "Herida cortante", "Dedo", "ACEPTADO", 15, 15], ["PCH", 202609, "2026-09-10", "AT", null, null, "RECHAZADO", 2, 0], ["PCH", 202609, "2026-09-23", "AT", "Caída de material", "Pie", "ACEPTADO", 2, 2], ["PCH", 202609, "2026-09-23", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 0, 0], ["PCH", 202610, "2026-10-23", "AT", "Proyección de partícula", "Ojo", "ACEPTADO", 0, 0], ["PCH", 202610, "2026-10-27", "EP", "Enfermedad profesional", "Ley Karin", "RECHAZADO", 8, 0]];
+const AUDC={"CAN": {"202608": [1, null], "202609": [1, null], "202610": [4, null]}, "EYZ": {"202608": [7, null], "202609": [2, 5], "202610": [1, 8]}, "PCH": {"202608": [4, null], "202609": [null, 8], "202610": [null, 2]}};
+const RC=[["CAN", 202607, "Izaje", null], ["CAN", 202607, "Excavaciones", 71], ["CAN", 202607, "Maquinarias", 100], ["CAN", 202607, "Altura", null], ["CAN", 202607, "Riesgos eléctricos", 80], ["CAN", 202608, "Izaje", 100], ["CAN", 202608, "Excavaciones", 78], ["CAN", 202608, "Maquinarias", null], ["CAN", 202608, "Altura", null], ["CAN", 202608, "Riesgos eléctricos", 82], ["CAN", 202609, "Izaje", 100], ["CAN", 202609, "Excavaciones", 94], ["CAN", 202609, "Maquinarias", 96], ["CAN", 202609, "Altura", null], ["CAN", 202609, "Riesgos eléctricos", 91], ["CAN", 202610, "Izaje", 95], ["CAN", 202610, "Excavaciones", 94], ["CAN", 202610, "Maquinarias", 96], ["CAN", 202610, "Altura", 54], ["CAN", 202610, "Riesgos eléctricos", 83], ["EYZ", 202601, "Izaje", null], ["EYZ", 202601, "Excavaciones", 100], ["EYZ", 202601, "Maquinarias", null], ["EYZ", 202601, "Altura", 85], ["EYZ", 202601, "Riesgos eléctricos", 94], ["EYZ", 202602, "Izaje", null], ["EYZ", 202602, "Excavaciones", 100], ["EYZ", 202602, "Maquinarias", null], ["EYZ", 202602, "Altura", 90], ["EYZ", 202602, "Riesgos eléctricos", 91], ["EYZ", 202603, "Izaje", null], ["EYZ", 202603, "Excavaciones", 83], ["EYZ", 202603, "Maquinarias", null], ["EYZ", 202603, "Altura", 88], ["EYZ", 202603, "Riesgos eléctricos", 91], ["EYZ", 202604, "Izaje", 100], ["EYZ", 202604, "Excavaciones", null], ["EYZ", 202604, "Maquinarias", null], ["EYZ", 202604, "Altura", 89], ["EYZ", 202604, "Riesgos eléctricos", 85], ["EYZ", 202605, "Izaje", 100], ["EYZ", 202605, "Excavaciones", null], ["EYZ", 202605, "Maquinarias", null], ["EYZ", 202605, "Altura", 91], ["EYZ", 202605, "Riesgos eléctricos", 94], ["EYZ", 202606, "Izaje", 100], ["EYZ", 202606, "Excavaciones", null], ["EYZ", 202606, "Maquinarias", null], ["EYZ", 202606, "Altura", 91], ["EYZ", 202606, "Riesgos eléctricos", 95], ["EYZ", 202607, "Izaje", 100], ["EYZ", 202607, "Excavaciones", null], ["EYZ", 202607, "Maquinarias", null], ["EYZ", 202607, "Altura", 96], ["EYZ", 202607, "Riesgos eléctricos", 91], ["EYZ", 202608, "Izaje", 97], ["EYZ", 202608, "Excavaciones", null], ["EYZ", 202608, "Maquinarias", null], ["EYZ", 202608, "Altura", 79], ["EYZ", 202608, "Riesgos eléctricos", 90], ["EYZ", 202609, "Izaje", 100], ["EYZ", 202609, "Excavaciones", null], ["EYZ", 202609, "Maquinarias", null], ["EYZ", 202609, "Altura", 87], ["EYZ", 202609, "Riesgos eléctricos", 84], ["EYZ", 202610, "Izaje", 100], ["EYZ", 202610, "Excavaciones", null], ["EYZ", 202610, "Maquinarias", null], ["EYZ", 202610, "Altura", 83], ["EYZ", 202610, "Riesgos eléctricos", 92], ["PCH", 202601, "Izaje", 100], ["PCH", 202601, "Excavaciones", null], ["PCH", 202601, "Maquinarias", 100], ["PCH", 202601, "Altura", 96], ["PCH", 202601, "Riesgos eléctricos", 94], ["PCH", 202603, "Izaje", null], ["PCH", 202603, "Excavaciones", null], ["PCH", 202603, "Maquinarias", 99], ["PCH", 202603, "Altura", 86], ["PCH", 202603, "Riesgos eléctricos", 90], ["PCH", 202604, "Izaje", null], ["PCH", 202604, "Excavaciones", null], ["PCH", 202604, "Maquinarias", null], ["PCH", 202604, "Altura", null], ["PCH", 202604, "Riesgos eléctricos", null], ["PCH", 202605, "Izaje", null], ["PCH", 202605, "Excavaciones", null], ["PCH", 202605, "Maquinarias", 99], ["PCH", 202605, "Altura", 86], ["PCH", 202605, "Riesgos eléctricos", 90], ["PCH", 202606, "Izaje", null], ["PCH", 202606, "Excavaciones", 94], ["PCH", 202606, "Maquinarias", 99], ["PCH", 202606, "Altura", 92], ["PCH", 202606, "Riesgos eléctricos", 88], ["PCH", 202607, "Izaje", null], ["PCH", 202607, "Excavaciones", null], ["PCH", 202607, "Maquinarias", null], ["PCH", 202607, "Altura", null], ["PCH", 202607, "Riesgos eléctricos", null], ["PCH", 202608, "Izaje", null], ["PCH", 202608, "Excavaciones", null], ["PCH", 202608, "Maquinarias", null], ["PCH", 202608, "Altura", null], ["PCH", 202608, "Riesgos eléctricos", null], ["PCH", 202609, "Izaje", null], ["PCH", 202609, "Excavaciones", null], ["PCH", 202609, "Maquinarias", 84], ["PCH", 202609, "Altura", null], ["PCH", 202609, "Riesgos eléctricos", 88], ["PCH", 202610, "Izaje", null], ["PCH", 202610, "Excavaciones", null], ["PCH", 202610, "Maquinarias", 97], ["PCH", 202610, "Altura", 98], ["PCH", 202610, "Riesgos eléctricos", 92]];
+const AUDIT=[["CAN", 202607, 72], ["CAN", 202608, 82], ["CAN", 202609, 90], ["CAN", 202610, 81], ["EYZ", 202607, 68], ["EYZ", 202608, 86], ["EYZ", 202609, 95], ["EYZ", 202610, 96], ["PCH", 202607, 72], ["PCH", 202608, 79], ["PCH", 202609, 87], ["PCH", 202610, 82]];
+const EXAM={"LEBEN": [["CAN", 202610, 24, 5, 5, 4, 1, 39], ["EYZ", 202610, 52, 1, 10, 37, 0, 100], ["PCH", 202610, 15, 0, 0, 115, 0, 130]], "SC": [["CAN", 202610, 17, 2, 3, 0, 0, 22], ["EYZ", 202610, 93, 1, 29, 0, 1, 124], ["PCH", 202610, 7, 0, 0, 70, 0, 77]]};
+const PGO=[["EYZ", 202611, "semana 1", "Luis Diaz", 87, 100, null, 100, 44, 2, 6], ["EYZ", 202611, "semana 1", "Fernando Ubilla", 69, 100, null, 100, 10, 2, 5]];
+const PROT=[["EYZ", 202610, 100, 100, 100, 100, 100], ["CAN", 202610, 100, 100, 100, 100, 100], ["PCH", 202610, 100, 100, 100, 100, 100], ["EYZ", 202611, 100, 100, 100, 100, 100], ["CAN", 202611, 100, 100, 100, 100, 100], ["PCH", 202611, 100, 100, 100, 100, 100]];
+
+</script>
+<script>
+/* ===== Lógica de cálculo (sin DOM) ===== */
+const NAMES={PCH:'Puerto Chico',EYZ:'Eyzaguirre',CAN:'El Canelo',AREA:'Área de construcción'};
+const OBRAS=['PCH','EYZ','CAN'];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const pLabel=p=>MESES[(p%100)-1]+'-'+String(Math.floor(p/100)).slice(2);
+function addH(a,b){return (a==null||b==null)?null:a+b}
+function mapFor(o,seg){
+  const m=new Map();
+  if(seg==='TOTAL'){
+    const sm=new Map(RAW[o].SC.map(r=>[r[0],r]));
+    for(const r of RAW[o].LEBEN){const s=sm.get(r[0]);if(s)m.set(r[0],{t:r[1]+s[1],a:r[2]+s[2],d:r[3]+s[3],h:addH(r[4],s[4])});}
+  } else for(const r of RAW[o][seg])m.set(r[0],{t:r[1],a:r[2],d:r[3],h:r[4]});
+  return m;
+}
+const _cache={};
+function series(key,seg){
+  const ck=key+'|'+seg; if(_cache[ck])return _cache[ck];
+  let m;
+  if(key==='AREA'){
+    m=new Map();
+    for(const o of OBRAS){for(const [p,v] of mapFor(o,seg)){
+      const c=m.get(p); m.set(p,c?{t:c.t+v.t,a:c.a+v.a,d:c.d+v.d,h:addH(c.h,v.h)}:{...v});}}
+  } else m=mapFor(key,seg);
+  const arr=[...m.entries()].sort((x,y)=>x[0]-y[0]).map(([p,v])=>({p,...v}));
+  return _cache[ck]=arr;
+}
+function statsAt(arr,i,crit){
+  if(i<0||i>=arr.length)return null;
+  const cur=arr[i];
+  const cyc=p=>(p%100>=7?Math.floor(p/100):Math.floor(p/100)-1);
+  const win=arr.filter((r,j)=>j<=i&&(crit==='INICIO'||(crit==='DS67'?cyc(r.p)===cyc(cur.p):Math.floor(r.p/100)===Math.floor(cur.p/100))));
+  const prom=win.reduce((s,r)=>s+r.t,0)/win.length;
+  const acc=win.reduce((s,r)=>s+r.a,0), dp=win.reduce((s,r)=>s+r.d,0);
+  const hhOk=win.every(r=>r.h!=null&&r.h>0), hh=win.reduce((s,r)=>s+(r.h||0),0);
+  return {p:cur.p,t:cur.t,accM:cur.a,dpM:cur.d,taM:cur.a/cur.t*100,tsM:cur.d/cur.t*100,
+          acc,dp,prom,ta:acc/prom*100,ts:dp/prom*100,fi:hhOk?acc*1e6/hh:null,gi:hhOk?dp*1e6/hh:null,first:win.length===1};
+}
+function idxOf(arr,p){return arr.findIndex(r=>r.p===p)}
+function prevPeriod(p){return (p%100===1)?(Math.floor(p/100)-1)*100+12:p-1}
+/* ===== Fin lógica ===== */
+
+const RCI=['Izaje','Excavaciones','Maquinarias','Altura','Riesgos eléctricos'];
+function rcNote(o,p,i){const r=RC.find(x=>x[0]===o&&x[1]===p&&x[2]===i);return r?r[3]:null}
+function rcAvg(o,p){const v=RC.filter(x=>x[0]===o&&x[1]===p&&x[3]!=null).map(x=>x[3]);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+function audNote(o,p){const r=AUDIT.find(x=>x[0]===o&&x[1]===p);return r?r[2]:null}
+function lastBefore(fn,p,minP=202601){let q=prevPeriod(p);while(q>=minP){const v=fn(q);if(v!=null)return v;q=prevPeriod(q)}return null}
+function avgObras(p,val){const v=OBRAS.map(o=>val(o,p)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+const state={tab:'area',mes:null,crit:'DS67',pers:'LEBEN',metric:'ta'};
+const $=s=>document.querySelector(s);
+const fmt=(x,d=1)=>x==null||Number.isNaN(x)?'—':x.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const periods=(()=>{const a=[];for(let y=2024;y<=2026;y++)for(let m=1;m<=12;m++){const p=y*100+m;if(p<=202610)a.push(p)}return a})();
+state.mes=202610;
+const TABS=[['area','Área de construcción',null],['pch','Puerto Chico','var(--pch)'],['eyz','Eyzaguirre','var(--eyz)'],['can','El Canelo','var(--can)'],['calculo','Cómo se calcula',null]];
+const KEYOF={area:'AREA',pch:'PCH',eyz:'EYZ',can:'CAN'};
+
+function delta(cur,prev,lowerBetter=true,d=1,show=true){
+  if(prev==null||cur==null)return {cls:'flat',txt:'sin dato previo',arrow:''};
+  const df=Math.round((cur-prev)*Math.pow(10,d))/Math.pow(10,d);
+  if(df===0)return {cls:'flat',txt:'= '+fmt(0,d),arrow:'='};
+  const better=lowerBetter?df<0:df>0;
+  return {cls:better?'good':'bad',txt:(df>0?'▲ +':'▼ ')+fmt(df,d),arrow:df>0?'▲':'▼'};
+}
+function cur(key){
+  const arr=series(key,state.pers); const i=idxOf(arr,state.mes);
+  const s=statsAt(arr,i,state.crit); if(!s)return null;
+  let pv=null;
+  const ip=idxOf(arr,prevPeriod(state.mes));
+  if(ip>=0)pv=statsAt(arr,ip,state.crit);
+  const reset=isReset(state.mes);
+  return {s,pv,reset};
+}
+function cell(v,d,pv,lowerBetter,opts={}){
+  if(v==null)return '<div class="cell flat"><b>—</b><i>sin dato</i></div>';
+  const dl=delta(v,opts.noPrev?null:pv,lowerBetter,d);
+  return `<div class="cell ${dl.cls}"><b>${fmt(v,d)}${opts.suffix||''}</b><i>${dl.txt}</i></div>`;
+}
+function tile(label,v,sub){return `<div class="tile"><div class="lbl">${label}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`}
+function isReset(p){return (state.crit==='ANUAL'&&p%100===1)||(state.crit==='DS67'&&p%100===7)}
+function cycStart(p){const m=p%100,y=Math.floor(p/100);return m>=7?y*100+7:(y-1)*100+7}
+function critTxt(){return state.crit==='ANUAL'?'acum. '+Math.floor(state.mes/100):state.crit==='DS67'?'acum. desde '+pLabel(cycStart(state.mes)):'acum. desde inicio'}
+function persTxt(){return {LEBEN:'personal Leben',SC:'subcontratos',TOTAL:'Leben + subcontratos'}[state.pers]}
+
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(([id,l,c])=>`<button class="tab" role="tab" id="t-${id}" aria-selected="${state.tab===id}" data-id="${id}">${c?`<span class="dot" style="background:${c}"></span>`:''}${l}</button>`).join('');
+}
+function auditRow(o){
+  const a=AUDC[o]||{}; const c=a[state.mes], p=a[prevPeriod(state.mes)];
+  return {cumple:audNote(o,state.mes),pc:lastBefore(q=>audNote(o,q),state.mes,202607),has:!!c,og:c?c[0]:null,te:c?c[1]:null,pog:p?p[0]:null,pte:p?p[1]:null};
+}
+function critCell(has,v,pv){
+  if(!has)return '<div class="cell flat"><b>—</b><i>sin dato</i></div>';
+  if(v==null)return '<div class="cell flat"><b>N/A</b><i>no aplica</i></div>';
+  return cell(v,0,pv,true);
+}
+function tableRows(list=OBRAS){
+  return list.map(o=>{
+    const r=cur(o), au=auditRow(o);
+    const nm=NAMES[o];
+    const col=`var(--${o.toLowerCase()})`;
+    const first=`<td class="o"><span class="dot" style="background:${col}"></span> ${o} ${nm}<div class="m">${pLabel(state.mes)}</div></td>`;
+    if(!r)return first+`<td colspan="9" class="l empty">Sin datos de ${persTxt()} para ${pLabel(state.mes)}</td>`;
+    const np=r.reset;
+    const rowtd=[
+      cell(r.s.taM,2,r.pv&&r.pv.taM,true),
+      cell(r.s.ta,2,r.pv&&r.pv.ta,true,{noPrev:np}),
+      cell(r.s.tsM,1,r.pv&&r.pv.tsM,true),
+      cell(r.s.ts,1,r.pv&&r.pv.ts,true,{noPrev:np}),
+      cell(r.s.accM,0,r.pv&&r.pv.accM,true),
+      cell(r.s.dpM,0,r.pv&&r.pv.dpM,true),
+      cell(au.cumple,0,au.pc,false,{suffix:'%'}),
+      critCell(au.has,au.og,au.pog),
+      critCell(au.has,au.te,au.pte)
+    ].map(h=>`<td>${h}</td>`).join('');
+    return `<tr class="go" data-go="${o.toLowerCase()}">${first}${rowtd}</tr>`;
+  }).join('');
+}
+function tableHTML(list=OBRAS){
+  return `<div class="scroll"><table><thead><tr><th>Obra</th><th>Accidentabilidad<br>del mes</th><th>Accidentabilidad<br>${critTxt()}</th><th>Siniestralidad<br>del mes</th><th>Siniestralidad<br>${critTxt()}</th><th>Accidentes<br>del mes</th><th>Días perdidos<br>del mes</th><th>Auditoría<br>% cumple</th><th>Condiciones altamente críticas<br>obra gruesa</th><th>Condiciones altamente críticas<br>terminaciones</th></tr></thead><tbody>${tableRows(list)}</tbody></table></div>
+  <p class="note">Verde: el indicador mejoró frente al mes anterior. Rojo: empeoró. Gris: sin cambio o sin dato previo. En el primer mes de cada ciclo (julio con DS 67, enero con año calendario) los acumulados parten de cero y no se comparan. N/A: no aplica en esa obra ese mes.${list.length>1?' Toca una obra para ver su detalle.':''}</p>`;
+}
+
+const METRICS={taM:['Accidentabilidad del mes',2,'mes'],ta:['Accidentabilidad acum.',2,'acum'],tsM:['Siniestralidad del mes',1,'mes'],ts:['Siniestralidad acum.',1,'acum'],accM:['Accidentes del mes',0,'mes'],dpM:['Días perdidos del mes',0,'mes'],aud:['Auditoría % cumple',0,'nota'],rc:['Riesgos críticos (promedio)',1,'nota']};
+function chartSeries(){
+  if(state.tab==='area'||state.tab==='calculo')return OBRAS.map(o=>({k:o,n:NAMES[o],c:`var(--${o.toLowerCase()})`,arr:series(o,state.pers),dash:''})).concat([{k:'AREA',n:'Área',c:'var(--area)',arr:series('AREA',state.pers),dash:'',thick:true}]);
+  const o=KEYOF[state.tab];
+  return [['LEBEN','Leben',`var(--${o.toLowerCase()})`,''],['SC','Subcontratos','var(--muted)','5 4'],['TOTAL','Total','var(--area)','']].map(([s,n,c,d])=>({k:s,n,c,arr:series(o,s),dash:d,thick:s==='TOTAL'}));
+}
+function notaSeries(){
+  const val=(o,p)=>state.metric==='aud'?audNote(o,p):rcAvg(o,p);
+  const per=periods.filter(p=>p>=202601&&p<=state.mes);
+  const mk=(k,n,c,thick)=>({k,n,c,thick,dash:'',pts:per.map(p=>({p,v:k==='AREA'?avgObras(p,val):val(k,p)})).filter(x=>x.v!=null)});
+  const obs=(state.tab==='area'||state.tab==='calculo')?OBRAS:[KEYOF[state.tab]];
+  return obs.map(o=>mk(o,NAMES[o],`var(--${o.toLowerCase()})`,false)).concat([mk('AREA','Área (promedio de obras)','var(--area)',true)]);
+}
+function chartHTML(){
+  return `<div class="card"><h2>Evolución mensual · ${state.tab==='area'?'por obra':NAMES[KEYOF[state.tab]]}</h2>
+  <div class="chips" id="chips">${Object.entries(METRICS).map(([k,m])=>`<button class="chip" data-m="${k}" aria-pressed="${state.metric===k}">${m[0]}</button>`).join('')}</div>
+  <div class="chartbox" id="cbox"></div><div class="legend" id="leg"></div>
+  <p class="note" id="cnote"></p></div>`;
+}
+function drawChart(){
+  const box=$('#cbox'); if(!box)return;
+  const W=Math.max(300,box.clientWidth), H=W<520?260:320;
+  const m=METRICS[state.metric], dec=m[1];
+  const ser=(m[2]==='nota'?notaSeries():chartSeries().map(s=>{
+    const pts=[];
+    s.arr.forEach((r,i)=>{ if(r.p<202401||r.p>state.mes)return; const st=statsAt(s.arr,i,state.crit); pts.push({p:r.p,v:st[state.metric]}); });
+    return {...s,pts};
+  })).filter(s=>s.pts.length);
+  if(!ser.length){box.innerHTML='<div class="empty">Sin datos de este indicador hasta '+pLabel(state.mes)+'.</div>';$('#leg').innerHTML='';$('#cnote').textContent='';return}
+  const ps=periods.filter(p=>p<=state.mes&&(m[2]!=='nota'||p>=202601));
+  const all=ser.flatMap(s=>s.pts.map(x=>x.v)); let max=Math.max(1,...all);
+  let step=[1,2,5,10,20,50,100,200,500].find(s=>max/s<=5)||1000; max=Math.ceil(max/step)*step; let ymin=0; if(m[2]==='nota'){max=100;ymin=Math.max(0,Math.floor((Math.min(...all)-5)/10)*10);step=ymin>=60?10:20}
+  const L=40,R=14,T=12,B=26, iw=W-L-R, ih=H-T-B;
+  const X=p=>L+iw*(ps.indexOf(p))/Math.max(1,ps.length-1), Y=v=>T+ih*(1-(v-ymin)/(max-ymin));
+  let g='';
+  for(let v=ymin;v<=max;v+=step){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" style="fill:var(--muted);font:11px var(--mono)">${fmt(v,0)}</text>`;}
+  const every=W<520?6:3;
+  ps.forEach((p,i)=>{if((ps.length-1-i)%every===0)g+=`<text x="${X(p)}" y="${H-6}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${pLabel(p)}</text>`;});
+  if(state.crit!=='INICIO'&&m[2]==='acum'){ps.forEach(p=>{if(isReset(p)&&p>ps[0])g+=`<line x1="${X(p)}" x2="${X(p)}" y1="${T}" y2="${T+ih}" style="stroke:var(--line);stroke-dasharray:2 3"/>`;});}
+  let lines='';
+  ser.forEach(s=>{
+    const d=s.pts.map((q,i)=>{
+      // corta la línea en reinicios anuales para no unir el cierre con el nuevo año
+      const brk=(m[2]==='acum'&&i>0&&isReset(q.p))||(m[2]==='nota'&&i>0&&prevPeriod(q.p)!==s.pts[i-1].p);
+      return (i===0||brk?'M':'L')+X(q.p).toFixed(1)+' '+Y(q.v).toFixed(1);}).join(' ');
+    lines+=`<path d="${d}" fill="none" style="stroke:${s.c}" stroke-width="${s.thick?2.4:1.8}" ${s.dash?`stroke-dasharray="${s.dash}"`:''} stroke-linejoin="round"/>`;
+    if(m[2]==='nota')s.pts.forEach(q=>{lines+=`<circle cx="${X(q.p)}" cy="${Y(q.v)}" r="2.6" style="fill:${s.c}"/>`});
+    const lp=s.pts[s.pts.length-1];
+    lines+=`<circle cx="${X(lp.p)}" cy="${Y(lp.v)}" r="3.6" style="fill:${s.c};stroke:var(--surface)" stroke-width="1.5"/>`;
+  });
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución mensual de ${m[0]}">${g}${lines}<line id="hv" y1="${T}" y2="${T+ih}" style="stroke:var(--muted)" stroke-width="1" visibility="hidden"/><rect id="hit" x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip" id="tip" hidden></div>`;
+  const hit=box.querySelector('#hit'),hv=box.querySelector('#hv'),tip=box.querySelector('#tip');
+  const move=e=>{
+    const r=box.getBoundingClientRect(); const x=(e.clientX-r.left)*(W/r.width);
+    let i=Math.round((x-L)/iw*(ps.length-1)); i=Math.max(0,Math.min(ps.length-1,i)); const p=ps[i];
+    hv.setAttribute('x1',X(p));hv.setAttribute('x2',X(p));hv.setAttribute('visibility','visible');
+    const rows=ser.map(s=>{const q=s.pts.find(z=>z.p===p);return q?`<div><span style="color:${s.c==='var(--area)'?'inherit':s.c};filter:brightness(1.3)">●</span> ${s.n}: ${fmt(q.v,dec)}</div>`:''}).join('');
+    tip.innerHTML=`<div>${pLabel(p)}</div>${rows}`;tip.hidden=false;
+    const tx=X(p)/W*r.width; tip.style.left=Math.min(r.width-tip.offsetWidth-4,Math.max(4,tx+12))+'px'; tip.style.top='8px';
+  };
+  hit.addEventListener('pointermove',move);hit.addEventListener('pointerdown',move);
+  hit.addEventListener('pointerleave',()=>{hv.setAttribute('visibility','hidden');tip.hidden=true});
+  $('#leg').innerHTML=ser.map(s=>`<span><i style="border-color:${s.c};${s.dash?'border-top-style:dashed':''}"></i>${s.n}</span>`).join('');
+  $('#cnote').textContent=m[2]==='nota'?'Notas de 0 a 100. Los meses sin visita o sin nota no tienen punto y la línea se corta.':m[2]==='acum'
+    ? (state.crit==='DS67'?'Con el ciclo del DS 67 la curva vuelve a cero cada julio (líneas punteadas verticales).':state.crit==='ANUAL'?'Con año calendario la curva vuelve a cero cada enero (líneas punteadas verticales).':'Con acumulado desde inicio la curva sigue creciendo mientras haya accidentes, porque el denominador es un promedio de trabajadores.')
+    : 'Valores del mes, sin acumular.';
+}
+
+const TIPO={AT:'Accidente de trabajo',TR:'Trayecto',EP:'Enf. profesional'};
+function eventsHTML(list,showObra){
+  if(!list.length)return '<div class="empty">Sin registros para este período.</div>';
+  return `<div class="scroll"><table class="ev"><thead><tr>${showObra?'<th>Obra</th>':''}<th style="text-align:left">Ingreso a mutual</th><th style="text-align:left">Tipo</th><th style="text-align:left">Causa</th><th style="text-align:left">Parte lesionada</th><th>Estado</th><th>Días perdidos</th></tr></thead><tbody>`+
+  list.map(e=>`<tr>${showObra?`<td class="l"><span class="dot" style="background:var(--${e[0].toLowerCase()})"></span> ${e[0]}</td>`:''}<td class="l">${e[2]?e[2].split('-').reverse().join('-'):'—'}</td><td class="l">${TIPO[e[3]]}</td><td class="l">${e[4]||'—'}</td><td class="l">${e[5]||'—'}</td><td><span class="pill ${e[6]==='ACEPTADO'?'ok':'no'}">${e[6]==='ACEPTADO'?'Aceptado':'Rechazado'}</span></td><td style="font-family:var(--mono)">${e[7]}</td></tr>`).join('')+`</tbody></table></div>`;
+}
+
+function riskCells(o){
+  const p=state.mes;
+  const cs=[cell(audNote(o,p),0,lastBefore(q=>audNote(o,q),p,202607),false,{suffix:'%'})];
+  RCI.forEach(i=>cs.push(cell(rcNote(o,p,i),0,lastBefore(q=>rcNote(o,q,i),p),false)));
+  cs.push(cell(rcAvg(o,p),1,lastBefore(q=>rcAvg(o,q),p),false));
+  return cs;
+}
+function riskTable(list=OBRAS){
+  const rows=list.map(o=>`<tr class="go" data-go="${o.toLowerCase()}"><td class="o"><span class="dot" style="background:var(--${o.toLowerCase()})"></span> ${o} ${NAMES[o]}<div class="m">${pLabel(state.mes)}</div></td>${riskCells(o).map(h=>`<td>${h}</td>`).join('')}</tr>`).join('');
+  return `<div class="scroll"><table><thead><tr><th>Obra</th><th>Auditoría<br>% cumple</th>${RCI.map(i=>`<th>${i}</th>`).join('')}<th>Promedio<br>riesgos críticos</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note">Notas de 0 a 100: auditoría realizada en la obra y visitas de riesgos críticos de Mutual de Seguridad. La variación compara con la visita anterior que tuvo nota, que no siempre es el mes pasado. Celda vacía: ese indicador no se midió ese mes.</p>`;
+}
+function riskHistory(o){
+  const ms=periods.filter(p=>p>=202601&&p<=state.mes).reverse().slice(0,10);
+  const f=v=>v==null?'—':fmt(v,0);
+  const rows=ms.map(p=>`<tr><td class="l" style="font-family:var(--mono)">${pLabel(p)}</td><td>${f(audNote(o,p))}</td>${RCI.map(i=>`<td>${f(rcNote(o,p,i))}</td>`).join('')}<td><b>${rcAvg(o,p)==null?'—':fmt(rcAvg(o,p),1)}</b></td></tr>`).join('');
+  return `<div class="card"><h2>Auditoría y riesgos críticos</h2><div style="height:8px"></div><div class="scroll"><table style="min-width:620px"><thead><tr><th>Mes</th><th>Auditoría %</th>${RCI.map(i=>`<th>${i}</th>`).join('')}<th>Promedio</th></tr></thead><tbody>${rows}</tbody></table></div><p class="note">Notas de 0 a 100. Un guion indica que ese mes no hubo nota para el indicador.</p></div>`;
+}
+
+const MESN=['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function exLabel(p){return MESN[p%100]+' '+Math.floor(p/100)}
+function examCard(list){
+  const rows=[];
+  list.forEach(o=>['LEBEN','SC'].forEach(g=>{
+    const e=(EXAM[g]||[]).filter(x=>x[0]===o).sort((a,b)=>b[1]-a[1])[0];
+    const nm=`<span class="dot" style="background:var(--${o.toLowerCase()})"></span> ${NAMES[o]}<div class="m">${g==='LEBEN'?'Personal Leben':'Subcontratos'}${e?' · '+exLabel(e[1]):''}</div>`;
+    if(!e) rows.push(`<tr><td class="o">${nm}</td><td colspan="7" class="na">Sin exámenes registrados</td></tr>`);
+    else{const[,,ap,re,nt,na,ag,tot]=e; const ap2=tot-na; const pc=ap2>0?ap/ap2*100:null;
+      rows.push(`<tr><td class="o">${nm}</td><td><b>${ap}</b></td><td>${re}</td><td>${nt}</td><td>${na}</td><td>${ag}</td><td>${tot}</td><td>${pc==null?'<span class="na">—</span>':`<b>${fmt(pc,0)}%</b><div class="bar"><i style="width:${pc}%"></i></div>`}</td></tr>`);}
+  }));
+  return `<div class="card"><h2>Exámenes de altura</h2><div style="height:10px"></div><div class="scroll"><table style="min-width:620px"><thead><tr><th>Obra</th><th>Aprobado</th><th>Rechazado</th><th>No tiene</th><th>No aplica</th><th>Agendado</th><th>Total</th><th>% aprobado<br>de los que aplica</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+  <p class="note">Cantidad de trabajadores por estado del examen. El % es aprobados sobre los trabajadores a los que aplica el examen (total menos “no aplica”).</p></div>`;
+}
+function pgoCard(list){
+  const lp=Math.max(...PGO.map(x=>x[1]));
+  const f=v=>v==null?'<span class="na">N/A</span>':fmt(v,0)+'%';
+  const rows=PGO.filter(x=>list.includes(x[0])).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(x=>`<tr><td class="o"><span class="dot" style="background:var(--${x[0].toLowerCase()})"></span> ${NAMES[x[0]]}<div class="m">${x[3]} · ${x[2]} ${exLabel(x[1])}</div></td><td>${f(x[4])}</td><td>${f(x[5])}</td><td>${f(x[6])}</td><td>${f(x[7])}</td><td>${x[8]==null?'—':x[8]}</td><td>${x[9]}</td><td>${x[10]}</td></tr>`).join('');
+  return `<div class="card"><h2>PGO por supervisor</h2><div style="height:10px"></div>`+(rows?`<div class="scroll"><table style="min-width:700px"><thead><tr><th>Obra · supervisor</th><th>Pizarra<br>% cumpl.</th><th>Avance</th><th>Calidad</th><th>Prevención</th><th>Días sin<br>accidentes</th><th>Pedidos<br>pendientes</th><th>Pedidos<br>cumplidos</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="note" style="margin:0">Sin registros PGO para esta obra todavía.</p>`)+`<p class="note">Se muestran los registros semanales cargados en el Excel de informe. N/A: el supervisor no tiene ese indicador.</p></div>`;
+}
+function protCard(list){
+  const P=['Ruido','Sílice','Vibraciones','Otros agentes químicos','Radiación UV'];
+  const rows=list.map(o=>{const e=PROT.filter(x=>x[0]===o).sort((a,b)=>b[1]-a[1]);const l=e[0];if(!l)return '';
+    const pv=e[1];
+    const c=P.map((_,i)=>{const v=l[2+i];const d=pv&&pv[2+i]!=null&&v!=null?v-pv[2+i]:null;return `<td>${v==null?'—':fmt(v,0)+'%'}${d?`<div class="m">${d>0?'▲':'▼'} ${fmt(Math.abs(d),0)} pts</div>`:''}</td>`}).join('');
+    return `<tr><td class="o"><span class="dot" style="background:var(--${o.toLowerCase()})"></span> ${NAMES[o]}<div class="m">${exLabel(l[1])}</div></td>${c}</tr>`}).join('');
+  return `<div class="card"><h2>Protocolos MINSAL</h2><div style="height:10px"></div><div class="scroll"><table style="min-width:620px"><thead><tr><th>Obra</th>${P.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><p class="note">% de cumplimiento del último mes informado en el Excel de informe.</p></div>`;
+}
+function extraCards(list){return examCard(list)+pgoCard(list)+protCard(list)}
+function renderArea(){
+  const r=cur('AREA'); let t='';
+  const np=r&&r.reset;
+  if(r){
+    const dta=delta(r.s.ta,np?null:r.pv&&r.pv.ta,true,2), dts=delta(r.s.ts,np?null:r.pv&&r.pv.ts,true,1), dac=delta(r.s.accM,r.pv&&r.pv.accM,true,0);
+    const n=OBRAS.filter(o=>series(o,state.pers).some(x=>x.p===state.mes)).length;
+    t=`<div class="tiles">
+      ${tile('Accidentabilidad del área',fmt(r.s.ta,2),`${critTxt()} · ${dta.txt}<br>Del mes: ${fmt(r.s.taM,2)}`)}
+      ${tile('Siniestralidad del área',fmt(r.s.ts,1),`${critTxt()} · ${dts.txt}<br>Del mes: ${fmt(r.s.tsM,1)}`)}
+      ${tile('Accidentes del mes',fmt(r.s.accM,0),`${fmt(r.s.dpM,0)} días perdidos en el mes`)}
+      ${tile('Mes cerrado',`${n} de 3`,`obras con ${pLabel(state.mes)} publicado (${persTxt()})`)}
+    </div>`;
+  } else t=`<div class="card empty">Sin datos de ${persTxt()} para ${pLabel(state.mes)}. Los subcontratos llegan hasta septiembre 2026.</div>`;
+  const evs=EVENTS.filter(e=>e[1]===state.mes);
+  return `<div class="head"><h2>Área de construcción · ${pLabel(state.mes)}</h2><span class="lbl">Suma de las obras activas · ${persTxt()}</span></div>${t}
+  <div class="card"><h2>Indicadores por obra</h2><div style="height:10px"></div>${tableHTML()}</div>
+  <div class="card"><h2>Auditoría y visitas de riesgos críticos</h2><div style="height:10px"></div>${riskTable()}</div>
+  ${extraCards(OBRAS)}
+  ${chartHTML()}
+  <div class="card"><h2>Registro de accidentes del mes</h2><div style="height:8px"></div>${eventsHTML(evs,true)}<p class="note">Sin nombres de trabajadores. Se muestran Puerto Chico, Eyzaguirre y El Canelo; Capitanes y Postventa quedan fuera de este panel.</p></div>`;
+}
+function renderObra(o){
+  const k=o.toUpperCase(); const r=cur(k); let t='';
+  if(r){
+    const np=r.reset;
+    const dta=delta(r.s.ta,np?null:r.pv&&r.pv.ta,true,2), dts=delta(r.s.ts,np?null:r.pv&&r.pv.ts,true,1);
+    t=`<div class="tiles">
+      ${tile('Accidentabilidad',fmt(r.s.ta,2),`${critTxt()} · ${dta.txt}<br>Del mes: ${fmt(r.s.taM,2)}`)}
+      ${tile('Siniestralidad',fmt(r.s.ts,1),`${critTxt()} · ${dts.txt}<br>Del mes: ${fmt(r.s.tsM,1)}`)}
+      ${tile('Accidentes '+critTxt().replace('acum. ',''),fmt(r.s.acc,0),`${fmt(r.s.accM,0)} en ${pLabel(state.mes)}`)}
+      ${tile('Días perdidos '+critTxt().replace('acum. ',''),fmt(r.s.dp,0),`${fmt(r.s.dpM,0)} en ${pLabel(state.mes)}`)}
+    </div>`;
+  } else t=`<div class="card empty">Sin datos de ${persTxt()} para ${pLabel(state.mes)}.</div>`;
+  const arr=series(k,state.pers);
+  const rows=arr.filter(x=>x.p<=state.mes).slice(-12).reverse().map(x=>{
+    const i=idxOf(arr,x.p); const s=statsAt(arr,i,state.crit);
+    return `<tr><td class="l" style="font-family:var(--mono)">${pLabel(x.p)}</td><td>${fmt(x.t,0)}</td><td>${x.a}</td><td>${x.d}</td><td>${x.h==null?'<span class="pill">s/HH</span>':fmt(x.h,0)}</td><td>${fmt(s.taM,2)}</td><td>${fmt(s.ta,2)}</td><td>${fmt(s.tsM,1)}</td><td>${fmt(s.ts,1)}</td></tr>`;}).join('');
+  const evs=EVENTS.filter(e=>e[0]===k&&e[1]<=state.mes).sort((a,b)=>(b[2]||'').localeCompare(a[2]||''));
+  return `<div class="head"><h2>${NAMES[k]} · ${pLabel(state.mes)}</h2><span class="lbl">${persTxt()}</span></div>${t}
+  <div class="card"><h2>Indicadores de ${NAMES[k]}</h2><div style="height:10px"></div>${tableHTML([k])}</div>
+  <div class="card"><h2>Auditoría y visitas de riesgos críticos · ${NAMES[k]}</h2><div style="height:10px"></div>${riskTable([k])}</div>
+  ${extraCards([k])}
+  ${chartHTML()}
+  ${riskHistory(k)}
+  <div class="card"><h2>Últimos 12 meses</h2><div style="height:8px"></div><div class="scroll"><table style="min-width:680px"><thead><tr><th>Mes</th><th>Trabajadores</th><th>Accidentes</th><th>Días perdidos</th><th>HH</th><th>Accidentab.<br>mes</th><th>Accidentab.<br>${critTxt()}</th><th>Siniestral.<br>mes</th><th>Siniestral.<br>${critTxt()}</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+  <div class="card"><h2>Registro de accidentes 2026</h2><div style="height:8px"></div>${eventsHTML(evs,false)}</div>`;
+}
+function renderCalc(){
+  return `<div class="head"><h2>Cómo se calcula</h2></div><div class="card prose">
+  <h3>Tasas</h3><ul>
+   <li><b>Accidentabilidad</b> = accidentes ÷ promedio de trabajadores × 100.</li>
+   <li><b>Siniestralidad</b> = días perdidos ÷ promedio de trabajadores × 100.</li>
+   <li>Las tasas <b>del mes</b> usan solo los trabajadores, accidentes y días perdidos de ese mes. Las tasas <b>acumuladas</b> usan el período del criterio elegido.</li>
+   <li><b>Índice de frecuencia</b> = accidentes acumulados × 1.000.000 ÷ horas hombre acumuladas. Se muestra solo si todos los meses del acumulado tienen HH cargadas.</li></ul>
+  <h3>Acumulado</h3><ul>
+   <li><b>DS 67 (criterio oficial)</b>: suma desde el 1 de julio del ciclo en curso hasta el mes elegido, y se reinicia cada julio. En octubre 2026 acumula julio a octubre 2026. El promedio de trabajadores es el promedio simple de esos meses.</li>
+   <li><b>Año calendario</b>: suma desde enero del año del mes elegido.</li>
+   <li><b>Desde inicio</b>: suma desde el primer mes de la obra (Puerto Chico, enero 2024; Eyzaguirre, noviembre 2025; El Canelo, marzo 2026).</li>
+   <li>Desde inicio la tasa de una obra larga sigue subiendo mes a mes aunque el ritmo de accidentes no cambie.</li></ul>
+  <h3>Personal y área</h3><ul>
+   <li><b>Total</b> suma Leben y subcontratos de la misma obra. <b>Área</b> suma las obras activas de cada mes y calcula las tasas sobre esa suma.</li>
+   <li>Subcontratos y total llegan hasta octubre 2026.</li></ul>
+  <h3>Auditoría y riesgos críticos</h3><ul>
+   <li>Notas de 0 a 100. La auditoría se mide desde julio 2026; las visitas de riesgos críticos de Mutual de Seguridad (izaje, excavaciones, maquinarias, altura y riesgos eléctricos), desde enero 2026.</li>
+   <li>El promedio de la visita es el promedio de los indicadores que tuvieron nota ese mes.</li></ul>
+  <h3>Colores</h3><ul><li>Cada celda compara con el mes anterior: verde si mejoró, rojo si empeoró. Todavía no hay metas definidas por indicador, así que los colores no indican cumplimiento de una meta.</li></ul>
+  <h3>Por revisar</h3><ul>
+   <li>Puerto Chico 2026: 14 accidentes en la estadística y 19 accidentes de trabajo aceptados en el registro. Falta definir qué criterio de conteo corresponde.</li>
+   <li>Puerto Chico, febrero: las cinco notas de riesgos críticos figuran en 0 en el archivo y no se muestran, porque se asume que no hubo visita.</li>
+   <li>Eyzaguirre figura con una visita en noviembre 2026. No se muestra hasta confirmar la fecha.</li>
+   <li>Puerto Chico no tiene notas de riesgos críticos en abril, julio y agosto.</li></ul>
+  <h3>Pendiente de recibir</h3><ul><li>Exámenes de altura.</li><li>Cronograma de actividades de los supervisores.</li></ul></div>`;
+}
+function render(){
+  renderTabs();
+  const v=$('#view');
+  const ctrlHidden=state.tab==='calculo';
+  document.querySelector('.ctrl').hidden=ctrlHidden;
+  v.innerHTML= state.tab==='area'?renderArea(): state.tab==='calculo'?renderCalc(): renderObra(state.tab);
+  if(state.tab!=='calculo')drawChart();
+  document.querySelectorAll('#segCrit button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===state.crit));
+  document.querySelectorAll('#segPers button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===state.pers));
+  $('#prov').hidden=false;
+}
+function go(id){state.tab=id;try{history.replaceState(null,'','#'+id)}catch(e){location.hash=id}render()}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.tab'); if(t){go(t.dataset.id);return}
+  const g=e.target.closest('[data-go]'); if(g){go(g.dataset.go);window.scrollTo(0,0);return}
+  const c=e.target.closest('#chips .chip'); if(c){state.metric=c.dataset.m;render();return}
+  const sc=e.target.closest('#segCrit button'); if(sc){state.crit=sc.dataset.v;render();return}
+  const sp=e.target.closest('#segPers button'); if(sp){state.pers=sp.dataset.v;render();return}
+});
+$('#mes').innerHTML=periods.slice().reverse().map(p=>`<option value="${p}">${pLabel(p)}</option>`).join('');
+$('#mes').addEventListener('change',e=>{state.mes=+e.target.value;render()});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==state.tab){state.tab=h;render()}});
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(state.tab!=='calculo')drawChart()},120)});
+(()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))state.tab=h})();
+render();
+</script>
+
+</body></html>
